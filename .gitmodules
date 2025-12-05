@@ -1,3 +1,6 @@
 [submodule "writeups"]
 	path = writeups
 	url = https://git@git.overleaf.com/691508db82e3092e2fb64895
+[submodule "references/repos/nagengast25-ma-thesis"]
+	path = references/repos/nagengast25-ma-thesis
+	url = https://gitlab.uni-hannover.de/nagengast.m/nagengast25-ma-thesis.git
