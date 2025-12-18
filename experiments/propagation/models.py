@@ -308,7 +308,7 @@ class AffectProbe:
         Return per-dimension R^2 scores from the linearity check.
         
         Returns:
-            Array of shape (K,) with R² for each affect dimension
+            Array of shape (K,) with R^2 for each affect dimension
         """
         if not self._fitted:
             raise RuntimeError("Probe must be fit first")
@@ -316,7 +316,7 @@ class AffectProbe:
     
     def score(self, H: np.ndarray, A: np.ndarray) -> float:
         """
-        Compute R² score on given data.
+        Compute R^2 score on given data.
         
         Args:
             H: Text embeddings of shape (N, 384)

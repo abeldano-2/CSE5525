@@ -253,7 +253,7 @@ def evaluate(
     # MSE (averaged over both outputs)
     mse = float(np.mean((preds - targets) ** 2))
     
-    # R² for each output
+    # R^2 for each output
     r2_rt = compute_r2(targets[:, 0], preds[:, 0])
     r2_fav = compute_r2(targets[:, 1], preds[:, 1])
     

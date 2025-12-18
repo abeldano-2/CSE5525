@@ -17,6 +17,7 @@ Modules:
 Scripts:
     scripts/run_pipeline.py   - Full end-to-end execution
     scripts/run_ablations.py  - Focused ablation experiments
+    scripts/run_subspace.py    - Affect subspace analysis
 """
 
 from .config import (

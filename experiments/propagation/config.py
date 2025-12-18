@@ -24,15 +24,15 @@ INDEX_SLICES = {
 }
 
 # =============================================================================
-# Probe Configuration (from README_v1 Section 5.1.1: Linearity Check)
+# Probe Configuration
 # =============================================================================
 
-# Minimum R² threshold for including an affect dimension in the subspace.
-# Dimensions with R² below this are excluded from the decomposition.
+# Minimum R^2 threshold for including an affect dimension in the subspace.
+# Dimensions with R^2 below this are excluded from the decomposition.
 PROBE_R2_THRESHOLD = 0.05
 
 # Minimum VAD lexicon coverage: fraction of tweets that must have >= this many
-# matched tokens for VAD scores to be considered reliable (README_v2 Section 2.2.1)
+# matched tokens for VAD scores to be considered reliable
 VAD_MIN_MATCHED_TOKENS = 3
 
 # Input dimensions for each model variant

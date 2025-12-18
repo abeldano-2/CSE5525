@@ -356,7 +356,7 @@ class VADScorer:
         
         Args:
             texts: List of tweet strings
-            min_matches: Minimum matched tokens for "adequate coverage" (README_v2)
+            min_matches: Minimum matched tokens for "adequate coverage"
             
         Returns:
             Tuple of:
@@ -534,7 +534,7 @@ def extract_metadata(df: pd.DataFrame, verbose: bool = True) -> np.ndarray:
         # Leave as 0 - media info often not in CSV exports
         missing.append("has_media (defaulting to 0)")
     
-    # 9-10: Cyclical hour encoding (README_v2 Section 3.1)
+    # 9-10: Cyclical hour encoding
     # Using sin/cos respects circular structure: hour 23 and hour 0 are adjacent
     hour = np.zeros(n)
     if "created_at" in df.columns:

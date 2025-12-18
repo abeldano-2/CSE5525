@@ -78,7 +78,7 @@ def run_stratified_shap(
     device: str = None
 ) -> Dict[str, Any]:
     """
-    Run SHAP analysis stratified by follower count (README_v2 Section 6.1).
+    Run SHAP analysis stratified by follower count.
     
     This controls for metadata dominance by computing feature importance
     within bins of similar follower counts, revealing whether emotion matters
@@ -418,3 +418,161 @@ def summarize_subspace(
             "components_are_complementary": gap_affect > 0 and gap_non_affect > 0,
         },
     }
+
+
+# =============================================================================
+# Report Generation (Raw Results Only)
+# =============================================================================
+
+def ablation_summary_text(ablation_results: Dict[str, Any]) -> str:
+    """Generate raw ablation results text without interpretation."""
+    m = ablation_results["metrics"]
+    d = ablation_results["deltas"]
+    rel = ablation_results["relative_improvement_pct"]
+    
+    lines = [
+        "=== Ablation Experiment Results ===",
+        f"M_full MSE:        {m['mse_full']:.6f}",
+        f"M_text+meta MSE:   {m['mse_text_meta']:.6f}  (Δ = {d['delta_no_affect']:+.6f})",
+        f"M_shuffled MSE:    {m['mse_shuffled']:.6f}  (Δ = {d['delta_shuffled']:+.6f})",
+        "",
+        f"Relative change (adding affect):     {rel['adding_affect']:+.4f}%",
+        f"Relative change (proper alignment):  {rel['proper_alignment']:+.4f}%",
+    ]
+    
+    return "\n".join(lines)
+
+
+def subspace_summary_text(subspace_results: Dict[str, Any]) -> str:
+    """Generate raw subspace results text without interpretation."""
+    m = subspace_results["metrics"]
+    g = subspace_results["gaps_from_full"]
+    r = subspace_results["mse_ratios"]
+    
+    lines = [
+        "=== Subspace Decomposition Results ===",
+        f"M_full MSE:         {m['mse_full']:.6f}",
+        f"M_affect_only MSE:  {m['mse_affect_only']:.6f}  (gap = {g['gap_affect_only']:+.6f}, ratio = {r['affect_only_ratio']:.4f})",
+        f"M_non_affect MSE:   {m['mse_non_affect']:.6f}  (gap = {g['gap_non_affect']:+.6f}, ratio = {r['non_affect_ratio']:.4f})",
+    ]
+    
+    return "\n".join(lines)
+
+
+def generate_report(
+    ablation_results: Dict[str, Any],
+    subspace_results: Dict[str, Any],
+    importance_df: pd.DataFrame = None,
+    probe_summary: str = None,
+    vad_coverage: Dict[str, Any] = None
+) -> str:
+    """
+    Generate a markdown report of raw analysis results without interpretation.
+    
+    Args:
+        ablation_results: Output from summarize_ablation()
+        subspace_results: Output from summarize_subspace()
+        importance_df: Output from rank_affect_importance() (optional)
+        probe_summary: Output from AffectProbe.summary() (optional)
+        vad_coverage: VAD lexicon coverage stats (optional)
+        
+    Returns:
+        Markdown-formatted report string with raw results only
+    """
+    lines = [
+        "# Emotion-Engagement Analysis Results",
+        "",
+    ]
+    
+    # Section 1: Ablation Results
+    lines.extend([
+        "## 1. Ablation Experiment Results",
+        "",
+        "| Model | MSE | Δ from Full |",
+        "|-------|-----|-------------|",
+    ])
+    
+    m = ablation_results["metrics"]
+    d = ablation_results["deltas"]
+    rel = ablation_results["relative_improvement_pct"]
+    
+    lines.append(f"| M_full | {m['mse_full']:.6f} | — |")
+    lines.append(f"| M_text+meta | {m['mse_text_meta']:.6f} | {d['delta_no_affect']:+.6f} |")
+    lines.append(f"| M_shuffled | {m['mse_shuffled']:.6f} | {d['delta_shuffled']:+.6f} |")
+    
+    lines.extend([
+        "",
+        f"Relative improvement (adding affect): {rel['adding_affect']:+.4f}%",
+        "",
+        f"Relative improvement (proper alignment): {rel['proper_alignment']:+.4f}%",
+        "",
+    ])
+    
+    # Section 2: Subspace Results
+    lines.extend([
+        "## 2. Subspace Decomposition Results",
+        "",
+        "| Model | MSE | Gap from Full | MSE Ratio |",
+        "|-------|-----|---------------|-----------|",
+    ])
+    
+    m2 = subspace_results["metrics"]
+    g = subspace_results["gaps_from_full"]
+    r = subspace_results["mse_ratios"]
+    
+    lines.append(f"| M_full | {m2['mse_full']:.6f} | — | 1.0000 |")
+    lines.append(f"| M_affect_only | {m2['mse_affect_only']:.6f} | {g['gap_affect_only']:+.6f} | {r['affect_only_ratio']:.4f} |")
+    lines.append(f"| M_non_affect | {m2['mse_non_affect']:.6f} | {g['gap_non_affect']:+.6f} | {r['non_affect_ratio']:.4f} |")
+    lines.append("")
+    
+    # Section 3: Probe Linearity (if provided)
+    section_num = 3
+    if probe_summary:
+        lines.extend([
+            f"## {section_num}. Probe Linearity Results",
+            "",
+            "```",
+            probe_summary,
+            "```",
+            "",
+        ])
+        section_num += 1
+    
+    # Section 4: VAD Coverage (if provided)
+    if vad_coverage:
+        lines.extend([
+            f"## {section_num}. VAD Lexicon Coverage",
+            "",
+            f"Total tweets: {vad_coverage.get('total_tweets', 'N/A')}",
+            "",
+            f"Tweets with any VAD match: {vad_coverage.get('tweets_with_any_match', 'N/A')}",
+            "",
+            f"Min matches threshold: {vad_coverage.get('min_matches_threshold', 'N/A')}",
+            "",
+            f"Tweets with adequate coverage: {vad_coverage.get('tweets_with_adequate_coverage', 'N/A')}",
+            "",
+            f"Coverage fraction: {vad_coverage.get('coverage_fraction', 0):.6f}",
+            "",
+            f"Mean matches per tweet: {vad_coverage.get('mean_matches_per_tweet', 0):.4f}",
+            "",
+        ])
+        section_num += 1
+    
+    # Section 5: Feature Importance (if provided)
+    if importance_df is not None:
+        lines.extend([
+            f"## {section_num}. Affect Feature Importance (SHAP)",
+            "",
+            "| Rank | Feature | Mean |SHAP| | Mean SHAP | Std SHAP |",
+            "|------|---------|-------------|-----------|----------|",
+        ])
+        
+        for _, row in importance_df.iterrows():
+            lines.append(
+                f"| {row['rank']} | {row['feature']} | {row['mean_abs_shap']:.6f} | "
+                f"{row['mean_shap']:+.6f} | {row['std_shap']:.6f} |"
+            )
+        
+        lines.append("")
+    
+    return "\n".join(lines)
